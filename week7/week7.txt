@@ -1,0 +1,15 @@
+1）Main函数在调用前执行构造函数（ __attribute__ ((constructor))    )
+在调用后执行析构函数（__attribute__  ((destructor))  )
+2）exit和_exit就是用来正常终止一个进程的，主要区别是_exit会立刻进入内核，而exit先执行一些清除工作（包括执行各种终止处理程序，关闭所有标准I／O等，一旦关闭了IO，例如Printf等函数就不会输出任何东西了），然后才进入内核。
+exit是退出去先把内存中的数据输出到文件中，而_exit 这个直接退出，消除内存中的数据；
+printf是标准行输出，遇到“\n”或者是写入的内存满了才会标准输出；
+3)当使用return或exit（）时，回调函数才能正常使用。atexit()函数用于注册那些酱油exit()自动调用的函数。
+4)建立库文件及编译
+--新建目录dllib
+--编写dllib.c--gcc -Wall -shared dlib.c -o libdlib.so
+--在test.c中加extern 外部变量声明。
+--修改编译命令
+--gcc -Wall test.c -o test -L ./ -ldlib
+--ldd命令观察是否找到库1）拷贝文件到 /user/lib
+--头文件声明dlfcn.h
+--gcc test1.c -ldl -o test1
