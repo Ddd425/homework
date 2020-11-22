@@ -1,0 +1,57 @@
+1.fork()函数
+#include <unistd.h>
+
+pid_t fork(void);
+
+fork函数用于创建子进程，调用一次，返回两次。子进程返回0，父进程返回子进程的ID，调用失败返回负。一般来说，fork后子进程和父进程的执行次序不确定。
+
+子进程与父进程共享正文段（即C程序中由CPU执行的指令部分）和同一个文件偏移量，不共享数据段（初始化数据段）、bss段（未初始化的数据）、栈和堆，子进程拥有不共享部分的副本。父进程中所有打开文件的文件描述符均被复制到子进程中。
+
+子进程继承父进程的组ID、会话ID、控制终端、当前工作目录、资源限制、信号屏蔽和安排、未决信号、文件权限屏蔽字等属性。子进程不继承父进程的进程时间、设置的文件锁等。
+
+2.exec函数族
+exec函数族是以新的进程去代替原来的进程，但进程的PID保持不变。因此，可以这样认为，exec系统调用并没有创建新的进程，只是替换了原来进程上下文的内容。原进程的代码段，数据段，堆栈段被新的进程所代替。
+
+在linux环境下，exec函数族共用6个函数，一般只有execve是内核的系统调用，其他5个都是库函数，均调用execve：
+
+execl(const char* filepath,const char* arg1,char*arg2......,(char *)0)
+
+execlp(const char*filename,const char*arg1,const char*arg2....., (char *)0)
+
+execle(const char*filepath,const char*arg1,const char*arg2,....., (char *)0,char* cons envp[])
+
+execv (const char* filepath,char* argv[])
+
+execvp (const char* filename,char* argv[])
+
+execve (const char* filepath,char*argv[],char* const envp[])
+
+其中l表示list即逐个列举，与v互斥，v表示传入参数列表。p表示path，即函数取filename为参数且从环境变量PATH中寻找可执行文件，e表示environment，即函数采用传入指定的环境变量，而不是采用系统默认的环境变量。
+
+exec调用举例如下:
+
+char *const ps_argv[] ={"ps", "-o", "pid,ppid,pgrp,session,tpgid,comm", NULL};
+
+char *const ps_envp[] ={"PATH=/bin:/usr/bin", "TERM=console", NULL};
+
+execl("/bin/ps", "ps", "-o", "pid,ppid,pgrp,session,tpgid,comm", NULL);
+
+execv("/bin/ps", ps_argv);
+
+execle("/bin/ps", "ps", "-o", "pid,ppid,pgrp,session,tpgid,comm", NULL, ps_envp);
+
+execve("/bin/ps", ps_argv, ps_envp);
+
+execlp("ps", "ps", "-o", "pid,ppid,pgrp,session,tpgid,comm", NULL);
+
+execvp("ps", ps_argv);
+
+在使用exec函数族时，一定要加上错误判断语句。因为exec很容易执行失败，其中最常见的原因有：
+
+① 找不到文件或路径，此时errno被设置为ENOENT。
+
+② 数组argv和envp忘记用NULL结束，此时errno被设置为EFAULT。
+
+③ 没有对应可执行文件的运行权限，此时errno被设置为EACCES。
+
+对打开文件的处理与每个描述符的exec关闭标志值有关，进程中每个文件描述符有一个 exec关闭标志（FD_CLOEXEC），若此标志设置，则在执行exec时关闭该描述符，否则该描述符仍打开。除非特地用fcntl设置了该标志，否 则系统的默认操作是在exec后仍保持这种描述符打开，利用这一点可以实现I/O重定向。

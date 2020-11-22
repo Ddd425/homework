@@ -1,0 +1,23 @@
+1.fork()函数
+#include <unistd.h>
+
+pid_t fork(void);
+
+1.exit()与_exit()函数
+进程正常终止的方式有：从main函数return；调用exit；调用_exit或_Exit；最后一个线程从其启动例程返回；从最后一个线程调用pthread_exit；
+
+进程非正常终止的方式：调用abort；收到一个信号；
+
+return是语言级的，返回调用函数，而exit是系统调用级的，表示进程退出。 在main函数中return一个整型值与用该值调用exit是等价的。
+
+exit立即调用exit系统调用进入内核，直接使进程停止运行，清除其使用的内存空间，并清除其在内核的各种数据结构。而exit则先执行一些清理处理，最大区别在于exit()函数在调用exit系统调用前要检查文件的打开情况，把文件缓冲区中的内容写回文件（如printf未输出换行符前的缓存在调用_exit后会被清空从而无法输出，而使用exit则会输出）。然后再返回内核。_Exit同_exit。
+
+所需头文件： exit: #include<stdlib.h>
+
+_exit: #include<unistd.h>
+
+函数原型：exit: void exit(int status)
+
+_exit: void _exit(int status)
+
+函数传入值：status 是一个整型的参数，可以利用这个参数传递进程结束时的状态。一般来说，0表示正常结束；其他的数值表示出现了错误，进程非正常结束。
