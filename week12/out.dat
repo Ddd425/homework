@@ -1,0 +1,5 @@
+dup1 pid=7894 
+argv[0] :./12-4 
+argv[1] :hello 
+argv[2] :world 
+argv[3] :2020 
